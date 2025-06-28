@@ -90,7 +90,7 @@
             
             const formData = new FormData(this);
 
-            fetch('https://script.google.com/macros/s/AKfycbzn5SJzcOHOtU8kHVnuvcYLrZMHgk70xSwqJR98vxtzxCjnd3dxHZeB2qj0MdiVRywM/exec', {
+            fetch('https://script.google.com/macros/s/AKfycbxXwTL5LpjsYR0WkuzhWD4HTEo_043tER2_ztjQCGVcAID7T09I6mT-6o9YzhtSDh0-/exec', {
                 method: 'POST',
                 body: formData
             })
@@ -102,7 +102,7 @@
                     text: `Transaction upload successfully!`,
                 });
 
-                sendTelegramPhoto(data.transactionId, data.type, data.amount, data.timestamp, formData.get('image'));
+                sendTelegramPhoto(data.transactionId, data.type, data.amount, data.remark, data.timestamp, formData.get('image'));
             })
             .catch(error => {
                 Swal.fire({
@@ -118,13 +118,13 @@
             return 'RM ' + formattedAmount.replace(/\d(?=(\d{3})+\.)/g, '$&,');
         }
 
-        function sendTelegramPhoto(transactionId, type, amount, timestamp, file) {
+        function sendTelegramPhoto(transactionId, type, amount, remark, timestamp, file) {
             const telegramBotToken = '6414565524:AAGY2obKsjvpfyH8rnq4t9OWMPDgKHM8ddI';
             const telegramChatId = '-4873327661';
 
             const formatAmount = formatCurrency(amount);
 
-            const message = `${type} ( ${formatAmount} ) - ${transactionId} - ${timestamp}`;
+            const message = `${type} ( ${formatAmount} ) - ${transactionId} - ${timestamp} ${remark}`;
 
             const formData = new FormData();
             formData.append('chat_id', telegramChatId);
