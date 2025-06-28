@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Upload Trasaction</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11.7.0/dist/sweetalert2.min.css">
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background-color: #f4f4f4;
+        }
+        .form-container {
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            width: 100%;
+            max-width: 400px;
+        }
+        .form-container h1 {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        .form-container label {
+            margin: 0 0 5px 10px;
+            display: inline-block;
+        }
+        .form-container input,
+        .form-container select,
+        .form-container textarea {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+        .form-container button {
+            width: 100%;
+            padding: 10px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        .form-container button:hover {
+            background-color: #45a049;
+        }
+    </style>
+</head><body>
+
+    <div class="form-container">
+        <h1>Upload Transaction</h1>
+        <form id="dataForm" enctype="multipart/form-data">
+            <label for="type">Type <span style="color: #ff0000;">*</span></label>
+            <select id="type" name="type">
+                <option value="Topup Balance">Topup Balance</option>
+                <option value="Pay Bill">Pay Bill</option>
+                <option value="Refund">Refund</option>
+            </select>
+
+            <label for="amount">Amount <span style="color: #ff0000;">*</span></label>
+            <input type="text" id="amount" name="amount" required>
+
+            <label for="remark">Remark <span style="color: grey;">(Option)</span></label>
+            <textarea id="remark" name="remark"></textarea>
+            
+            <label for="image">Receipt <span style="color: #ff0000;">*</span></label>
+            <input type="file" id="image" name="image" accept="image/*" required>
+            
+            <button type="submit">Submit</button>
+        </form>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.7.0/dist/sweetalert2.all.min.js"></script>
+
+    <script>
+        document.getElementById('dataForm').addEventListener('submit', function (e) {
+            e.preventDefault();
+            
+            const formData = new FormData(this);
+
+            fetch('https://script.google.com/macros/s/AKfycbzn5SJzcOHOtU8kHVnuvcYLrZMHgk70xSwqJR98vxtzxCjnd3dxHZeB2qj0MdiVRywM/exec', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                Swal.fire({
+                    icon: "success",
+                    title: "Success",
+                    text: `Transaction upload successfully!`,
+                });
+
+                sendTelegramPhoto(data.transactionId, data.type, data.amount, data.timestamp, formData.get('image'));
+            })
+            .catch(error => {
+                Swal.fire({
+                    icon: "error",
+                    title: "Oops...",
+                    text: "Upload Transaction failed! Please try again later.",
+                });
+            });
+        });
+
+        function formatCurrency(amount) {
+            const formattedAmount = parseFloat(amount).toFixed(2);
+            return 'RM ' + formattedAmount.replace(/\d(?=(\d{3})+\.)/g, '$&,');
+        }
+
+        function sendTelegramPhoto(transactionId, type, amount, timestamp, file) {
+            const telegramBotToken = '6414565524:AAGY2obKsjvpfyH8rnq4t9OWMPDgKHM8ddI';
+            const telegramChatId = '-4873327661';
+
+            const formatAmount = formatCurrency(amount);
+
+            const message = `${type} ( ${formatAmount} ) - ${transactionId} - ${timestamp}`;
+
+            const formData = new FormData();
+            formData.append('chat_id', telegramChatId);
+            formData.append('photo', file);
+            formData.append('caption', message);
+
+            fetch(`https://api.telegram.org/bot${telegramBotToken}/sendPhoto`, {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                console.log("Telegram message with photo sent successfully:", data);
+            })
+            .catch(error => {
+                console.error("Error sending Telegram photo:", error);
+            });
+        }
+    </script>
+
+</body></html>
